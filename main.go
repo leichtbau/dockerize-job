@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -33,12 +34,32 @@ func runScriptOnSchedule() {
 	}
 }
 
+func forward(conn net.Conn, path string) {
+	client, err := net.Dial("unix", path)
+	if err != nil {
+		log.Fatalf("Dial failed: %v", err)
+	}
+
+	go func() {
+		defer client.Close()
+		defer conn.Close()
+		io.Copy(client, conn)
+	}()
+	go func() {
+		defer client.Close()
+		defer conn.Close()
+		io.Copy(conn, client)
+	}()
+}
+
 func main() {
 
 	// Parse options from the command line
 	socketPath := flag.String("socket", "", "socket file path")
 	configPath := flag.String("config-base", "", "configuration base path")
 	cronSpec := flag.String("cron-spec", "", "cron specification (optional)")
+	forwardSocketPath := flag.String("forward-socket", "", "path to Unix socket to forward to port 443")
+
 	flag.Parse()
 
 	if *socketPath == "" {
@@ -133,6 +154,24 @@ func main() {
 	if flag.NArg() > 0 {
 		ctx, cancel := context.WithCancel(context.Background())
 		go runCmd(ctx, cancel, flag.Arg(0), flag.Args()[1:]...)
+	}
+
+	if *forwardSocketPath != "" {
+		go func() {
+			listener, err := net.Listen("tcp", "0.0.0.0:443")
+			if err != nil {
+				log.Fatalf("Failed to setup listener: %v", err)
+			}
+
+			for {
+				conn, err := listener.Accept()
+				if err != nil {
+					log.Fatalf("ERROR: failed to accept listener: %v", err)
+				}
+				log.Printf("Accepted connection %v\n", conn)
+				go forward(conn, *forwardSocketPath)
+			}
+		}()
 	}
 
 	// TODO: Make cancelable
