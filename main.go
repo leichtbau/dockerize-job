@@ -168,7 +168,6 @@ func main() {
 				if err != nil {
 					log.Fatalf("ERROR: failed to accept listener: %v", err)
 				}
-				log.Printf("Accepted connection %v\n", conn)
 				go forward(conn, *forwardSocketPath)
 			}
 		}()
