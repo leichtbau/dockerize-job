@@ -1,0 +1,5 @@
+#! /bin/bash
+
+echo $GITHUB_TOKEN | docker login docker.pkg.github.com -u rs22 --password-stdin
+docker tag  docker.pkg.github.com/leichtbau/dockerize-job/dockerize-job-$ARCH:latest docker.pkg.github.com/leichtbau/dockerize-job/dockerize-job-$ARCH:$TRAVIS_TAG
+docker push docker.pkg.github.com/leichtbau/dockerize-job/dockerize-job-$ARCH:$TRAVIS_TAG

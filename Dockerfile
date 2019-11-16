@@ -1,4 +1,6 @@
-FROM golang:1.12-alpine AS binary
+ARG ARCH=amd64
+
+FROM $ARCH/golang:1.13.4-alpine3.10 AS binary
 
 RUN apk add -U git
 
@@ -7,7 +9,7 @@ ADD main.go exec.go go.mod go.sum ./
 
 RUN go install
 
-FROM alpine:3.6
+FROM $ARCH/alpine:3.10
 
 COPY --from=binary /go/bin/dockerize-job /usr/local/bin
 

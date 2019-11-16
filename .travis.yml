@@ -1,0 +1,26 @@
+language: generic
+
+services:
+- docker
+
+matrix:
+  include:
+  - os: linux
+    arch: amd64
+    env: ARCH=amd64
+  - os: linux
+    arch: arm64
+    env: ARCH=arm32v7
+
+script:
+  - docker build --build-arg ARCH=$ARCH -t docker.pkg.github.com/leichtbau/dockerize-job/dockerize-job-$ARCH:latest .
+
+deploy:
+  - provider: script
+    on:
+      tags: true
+    script: bash scripts/docker_push_ci
+
+env:
+  global:
+    secure: QzxzB1o3rHlfiMUXWzlclKZNm0fyvXdTb0R5UdMxX2c2ya1EgjTTFuqmYMlu/00TwXP9EEC6489B2b554x8GgLrYEFf4i9RHmSMIKyoTcgAsxmuYMaE0BmwVeNbx1/r+ZQ+NuzEAcLV+I/o1ow4SRMKmrI0iHxeNcwP/DhDY9UTHs9o6wdYfKhHo76O+Zx+Y1utDOFVqIhdoIzzLcPjcCMlAAQlT5VHt0vQvVoE5W64aFy0qCI6sjy7NbxK/4LzNMzEfZDX8NK5KdlcBHisxR/8cKIsNSH8cnzKSGUnb6qVNLfcCITMUttkwYmK6JiEAgsBzt+gW2Xpb5+Im3HIDGMZddvFKBu0SyaYiHUhruopU2tWZzOCbDTmUoX+dq8seDsBMFMrDbgyzMjYnAzxe2LKcd9SZQLDsUR6ngiEP2E/r4TmsF4o8/qAlru0rZUKyHO8c/hfxEwl34GW9B5wwvWHlcHCpAFFp00O1aTG42Zu7MNnh4UhkVgGLYDEIXsdTVxzR71cHeOeZMUrHKqFI3RE/VL3Qcd6tVNLC0Xd2yg0NcMw0tgv+nXNBzvSNZF9pWhpTcqCb55T/8Jpql/W6JCDLrMzBTxXZ25KMfRkc3rXFMuq9RQMs+Xc43vkZwzdoRbuM2NNQ22xt7ObDTvIXmYeWetE80j2XYk0O7buzdo4=
