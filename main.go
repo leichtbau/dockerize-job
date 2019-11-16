@@ -151,11 +151,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if flag.NArg() > 0 {
-		ctx, cancel := context.WithCancel(context.Background())
-		go runCmd(ctx, cancel, flag.Arg(0), flag.Args()[1:]...)
-	}
-
 	if *forwardSocketPath != "" {
 		go func() {
 			listener, err := net.Listen("tcp", "0.0.0.0:443")
@@ -173,6 +168,12 @@ func main() {
 		}()
 	}
 
-	// TODO: Make cancelable
-	server.Serve(unixListener)
+	if flag.NArg() > 0 {
+		go server.Serve(unixListener)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		runCmd(ctx, cancel, flag.Arg(0), flag.Args()[1:]...)
+	} else {
+		server.Serve(unixListener)
+	}
 }
